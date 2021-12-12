@@ -3,7 +3,9 @@ import ContactForm from "./components/ContactForm/ContactForm.jsx";
 import Filter from "./components/Filter/Filter.jsx";
 import ContactList from "./components/ContactList/ContactList.jsx";
 import { nanoid } from "nanoid";
+import { get, save } from "./services/localStorage";
 
+const CONTACTS_KEY = "contacts";
 class App extends Component {
   state = {
     contacts: [
@@ -15,38 +17,52 @@ class App extends Component {
     filter: "",
   };
 
+  componentDidMount() {
+    const savedContacts = get(CONTACTS_KEY);
+    if (savedContacts) {
+      this.setState({ contacts: savedContacts });
+    }
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    const { contacts } = this.state;
+    if (prevState.contacts !== contacts) {
+      save(CONTACTS_KEY, contacts);
+    }
+  }
+
   addContact = ({ name, number }) => {
     const isName = this.checkName(name);
     if (isName) return alert(`${name} is already in contacts`);
     const obj = {
-      id: nanoid(),
+      id: nanoid(5),
       name,
       number,
     };
-    this.setState(prevState => {
+    this.setState((prevState) => {
       return {
         contacts: [...prevState.contacts, obj],
       };
     });
   };
 
-  checkName = nameValue =>
+  checkName = (nameValue) =>
     this.state.contacts.some(({ name }) => name === nameValue);
 
-  handleChange = e => {
+  handleChange = (e) => {
     const { name, value } = e.target;
     this.setState({ [name]: value });
   };
 
   filterContacts = () => {
-    return this.state.contacts.filter(contact =>
+    return this.state.contacts.filter((contact) =>
       contact.name.toLowerCase().includes(this.state.filter.toLowerCase())
     );
   };
 
-  deleteContact = id => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== id),
+  deleteContact = (id) => {
+    this.setState((prevState) => ({
+      contacts: prevState.contacts.filter((contact) => contact.id !== id),
     }));
   };
 
